@@ -21,10 +21,9 @@ class Settings(BaseSettings):
     chroma_port: int = 8001
     chroma_url: str = "http://localhost:8001"
     chroma_collection: str = "finance_documents"
-    ollama_base_url: str = "http://localhost:11434"
 
-    embedding_provider: str = "openai"
-    embedding_model: str = ""
+    embedding_provider: str = "fastembed"
+    embedding_model: str = "BAAI/bge-small-en-v1.5"
     openai_api_key: str | None = None
     groq_api_key: str | None = None
     llm_provider: str = "openai"

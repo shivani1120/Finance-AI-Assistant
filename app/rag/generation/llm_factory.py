@@ -40,11 +40,6 @@ def create_chat_model(settings: Settings) -> BaseChatModel:
 
         return ChatAnthropic(model=model_name, anthropic_api_key=settings.anthropic_api_key)
 
-    if provider == "ollama":
-        from langchain_ollama import ChatOllama
-
-        return ChatOllama(model=model_name, base_url=settings.ollama_base_url)
-
     raise LLMConfigurationError(
-        "Unsupported LLM_PROVIDER. Supported values are 'openai', 'anthropic', 'ollama', and 'groq'."
+        "Unsupported LLM_PROVIDER. Supported values are 'openai', 'anthropic', and 'groq'."
     )

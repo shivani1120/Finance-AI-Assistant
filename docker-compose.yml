@@ -11,7 +11,6 @@ services:
       CHROMA_HOST: chroma
       CHROMA_PORT: 8000
       CHROMA_URL: http://chroma:8000
-      OLLAMA_BASE_URL: http://ollama:11434
       UPLOAD_DIR: /data/uploads
     volumes:
       - uploaded_documents:/data/uploads
@@ -21,8 +20,6 @@ services:
       postgres:
         condition: service_healthy
       chroma:
-        condition: service_started
-      ollama:
         condition: service_started
 
   postgres:
@@ -50,15 +47,7 @@ services:
     healthcheck:
       disable: true
 
-  ollama:
-    image: ollama/ollama:latest
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-
 volumes:
   postgres_data:
   chroma_data:
   uploaded_documents:
-  ollama_data:

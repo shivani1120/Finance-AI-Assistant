@@ -37,17 +37,9 @@ def create_embedding_model(settings: Settings) -> Embeddings:
     if provider == "fastembed":
         return FastEmbedEmbeddings(settings.embedding_model)
 
-    if provider == "ollama":
-        from langchain_ollama import OllamaEmbeddings
-
-        return OllamaEmbeddings(
-            model=settings.embedding_model,
-            base_url=settings.ollama_base_url,
-        )
-
     if provider != "openai":
         raise EmbeddingConfigurationError(
-            "Unsupported EMBEDDING_PROVIDER. Supported values are 'fastembed', 'openai', and 'ollama'."
+            "Unsupported EMBEDDING_PROVIDER. Supported values are 'fastembed' and 'openai'."
         )
     if not settings.openai_api_key:
         raise EmbeddingConfigurationError("Set OPENAI_API_KEY to enable document embeddings")

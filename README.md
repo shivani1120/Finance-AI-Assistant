@@ -24,8 +24,8 @@ The API exposes liveness, account registration and login, PDF upload, semantic s
 - Python 3.12, FastAPI, Uvicorn
 - Pydantic Settings for environment configuration
 - LangChain Community PDF loader and recursive text splitter
-- FastEmbed local embeddings plus LangChain integrations for OpenAI and Ollama
-- LangChain chat integrations for OpenAI, Anthropic, Ollama, and Groq
+- FastEmbed local embeddings plus OpenAI embeddings
+- LangChain chat integrations for OpenAI, Anthropic, and Groq
 - LangGraph state graph for chat orchestration
 - Chroma vector search with metadata filters
 - PostgreSQL 16 with SQLAlchemy for user accounts, roles, and query history
@@ -42,7 +42,7 @@ openssl rand -hex 32
 docker compose up --build
 ```
 
-The sample `.env` is for local development only. Configure `JWT_SECRET_KEY` as above, and set the optional bootstrap admin credentials before the first start if you need an administrator account. Change the database password before sharing the setup. Compose waits for PostgreSQL to become healthy and starts Chroma and Ollama before the API; Chroma and Ollama do not have container health checks in this setup. API docs are available at <http://localhost:8000/docs>. This local Compose setup serves plain HTTP for local development; put the API behind an HTTPS reverse proxy before exposing it to a network.
+The sample `.env` is for local development only. Configure `JWT_SECRET_KEY` as above, and set the optional bootstrap admin credentials before the first start if you need an administrator account. Change the database password before sharing the setup. Compose waits for PostgreSQL to become healthy and starts Chroma before the API. API docs are available at <http://localhost:8000/docs>. This local Compose setup serves plain HTTP for local development; put the API behind an HTTPS reverse proxy before exposing it to a network.
 
 To stop the containers while retaining database/vector data:
 
@@ -94,7 +94,7 @@ Uploads are tagged with their owning user ID, and search/chat always filter by t
 
 ## Upload a PDF
 
-The example configuration uses FastEmbed with the open `BAAI/bge-small-en-v1.5` model. It generates embeddings locally in the API process, so no embedding API key or per-request embedding fee is needed. The model is downloaded on first use. You can also select `openai` or `ollama` with `EMBEDDING_PROVIDER`; those options need their corresponding provider setup. The resulting vectors and chunk metadata are stored in the local Chroma service. No API keys are included in the repository.
+The example configuration uses FastEmbed with the open `BAAI/bge-small-en-v1.5` model. It generates embeddings locally in the API process, so no embedding API key or per-request embedding fee is needed. The model is downloaded on first use. You can also select `openai` with `EMBEDDING_PROVIDER`; that option needs an OpenAI API key. The resulting vectors and chunk metadata are stored in the local Chroma service. No API keys are included in the repository.
 
 ```bash
 curl -X POST http://localhost:8000/documents/upload \\
@@ -122,7 +122,7 @@ curl -X POST http://localhost:8000/retrieval/search \\
 
 ## Ask a grounded question
 
-Set `LLM_PROVIDER` to `openai` or `anthropic`, then set `LLM_MODEL` to a model enabled for that provider account. OpenAI chat uses `OPENAI_API_KEY`; Anthropic chat uses `ANTHROPIC_API_KEY`. Embeddings are still generated with the configured OpenAI embedding integration, so `OPENAI_API_KEY` is required for retrieval with either chat provider.
+Set `LLM_PROVIDER` to `openai` or `anthropic`, then set `LLM_MODEL` to a model enabled for that provider account. OpenAI chat uses `OPENAI_API_KEY`; Anthropic chat uses `ANTHROPIC_API_KEY`. Embeddings use the separate provider configured through `EMBEDDING_PROVIDER` and `EMBEDDING_MODEL`.
 
 ```bash
 curl -X POST http://localhost:8000/chat \\
