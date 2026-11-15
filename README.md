@@ -94,7 +94,7 @@ Uploads are tagged with their owning user ID, and search/chat always filter by t
 
 ## Upload a PDF
 
-The example configuration uses FastEmbed with the open `BAAI/bge-small-en-v1.5` model. It generates embeddings locally in the API process, so no embedding API key or per-request embedding fee is needed. The model is downloaded on first use. You can also select `openai` with `EMBEDDING_PROVIDER`; that option needs an OpenAI API key. The resulting vectors and chunk metadata are stored in the local Chroma service. No API keys are included in the repository.
+The example configuration uses FastEmbed with the open `BAAI/bge-small-en-v1.5` model. It generates embeddings locally in the API process, so no embedding API key or per-request embedding fee is needed. The model is downloaded on first use. You can also select `jina` or `openai` with `EMBEDDING_PROVIDER`; for Jina, set `EMBEDDING_MODEL=jina-embeddings-v5-text-small` and `JINA_API_KEY`, and for OpenAI set `OPENAI_API_KEY`. API providers receive the text being embedded. The resulting vectors and chunk metadata are stored in the local Chroma service. No API keys are included in the repository.
 
 ```bash
 curl -X POST http://localhost:8000/documents/upload \\

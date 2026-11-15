@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     embedding_provider: str = "fastembed"
     embedding_model: str = "BAAI/bge-small-en-v1.5"
     openai_api_key: str | None = None
+    jina_api_key: str | None = None
     groq_api_key: str | None = None
     llm_provider: str = "openai"
     llm_model: str = ""
