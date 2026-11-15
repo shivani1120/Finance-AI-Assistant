@@ -24,7 +24,7 @@ The API exposes liveness, account registration and login, PDF upload, semantic s
 - Python 3.12, FastAPI, Uvicorn
 - Pydantic Settings for environment configuration
 - LangChain Community PDF loader and recursive text splitter
-- LangChain embedding integrations for OpenAI and Ollama
+- FastEmbed local embeddings plus LangChain integrations for OpenAI and Ollama
 - LangChain chat integrations for OpenAI, Anthropic, Ollama, and Groq
 - LangGraph state graph for chat orchestration
 - Chroma vector search with metadata filters
@@ -94,7 +94,7 @@ Uploads are tagged with their owning user ID, and search/chat always filter by t
 
 ## Upload a PDF
 
-Set a valid `OPENAI_API_KEY` in `.env`; embeddings are sent to OpenAI, and the resulting vectors plus chunk metadata are stored in the local Chroma service. No key is included in the repository. The embedding provider and model are configured with `EMBEDDING_PROVIDER` and `EMBEDDING_MODEL`.
+The example configuration uses FastEmbed with the open `BAAI/bge-small-en-v1.5` model. It generates embeddings locally in the API process, so no embedding API key or per-request embedding fee is needed. The model is downloaded on first use. You can also select `openai` or `ollama` with `EMBEDDING_PROVIDER`; those options need their corresponding provider setup. The resulting vectors and chunk metadata are stored in the local Chroma service. No API keys are included in the repository.
 
 ```bash
 curl -X POST http://localhost:8000/documents/upload \\
@@ -211,14 +211,13 @@ Copy `.env.example` to `.env`. Settings are read from environment variables and 
 
 ## Groq chat with local embeddings
 
-The default configuration uses Groq for chat (`qwen/qwen3.8-27b`) and Ollama's `nomic-embed-text` model for embeddings. Set `GROQ_API_KEY` in `.env`; the chat model runs in Groq Cloud, while embeddings run locally through the Ollama service. Groq's free tier has model-specific request and token limits that can change; check the current [Groq rate limits](https://console.groq.com/docs/rate-limits).
+The example configuration uses Groq for chat (`qwen/qwen3.8-27b`) and FastEmbed (`BAAI/bge-small-en-v1.5`) for embeddings. Set `GROQ_API_KEY` in `.env`; chat runs in Groq Cloud, while embeddings run locally in the API process. Groq's model availability and usage limits can change; check the current [Groq rate limits](https://console.groq.com/docs/rate-limits).
 
 ```bash
 docker compose up --build -d
-docker compose exec ollama ollama pull nomic-embed-text
 ```
 
-The embedding model download uses local disk and memory. Groq receives chat prompts and the retrieved document passages used as context. Existing Chroma collections created with a different embedding model should be re-indexed before using `nomic-embed-text` for retrieval.
+FastEmbed downloads its model on first use and needs local disk and memory. Groq receives chat prompts and the retrieved document passages used as context. If you change the embedding model, re-index documents into a fresh Chroma collection before searching them: vectors from different embedding models cannot be mixed.
 
 ## Planned phases
 
