@@ -10,7 +10,18 @@ from app.core.config import get_settings
 
 @lru_cache
 def get_engine() -> Engine:
-    return create_engine(get_settings().database_url, pool_pre_ping=True)
+    database_url = get_settings().database_url
+    # Railway and several other hosts provide a plain PostgreSQL URL. This
+    # project uses psycopg 3, so make the driver explicit for SQLAlchemy.
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace(
+            "postgres://", "postgresql+psycopg://", 1
+        )
+    elif database_url.startswith("postgresql://"):
+        database_url = database_url.replace(
+            "postgresql://", "postgresql+psycopg://", 1
+        )
+    return create_engine(database_url, pool_pre_ping=True)
 
 
 @lru_cache
