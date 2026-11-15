@@ -1,0 +1,64 @@
+services:
+  api:
+    build: .
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-finance_rag}:${POSTGRES_PASSWORD:-change-me-for-local-use}@postgres:5432/${POSTGRES_DB:-finance_rag}
+      CHROMA_HOST: chroma
+      CHROMA_PORT: 8000
+      CHROMA_URL: http://chroma:8000
+      OLLAMA_BASE_URL: http://ollama:11434
+      UPLOAD_DIR: /data/uploads
+    volumes:
+      - uploaded_documents:/data/uploads
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      chroma:
+        condition: service_started
+      ollama:
+        condition: service_started
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-finance_rag}
+      POSTGRES_USER: ${POSTGRES_USER:-finance_rag}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-for-local-use}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  chroma:
+    image: chromadb/chroma:1.5.2
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/data
+    healthcheck:
+      disable: true
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+volumes:
+  postgres_data:
+  chroma_data:
+  uploaded_documents:
+  ollama_data:
