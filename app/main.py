@@ -3,6 +3,8 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.api.routes.auth import admin_router, router as auth_router
 from app.api.routes.health import router as health_router
@@ -28,11 +30,25 @@ api.include_router(retrieval_router)
 api.include_router(chat_router)
 api.include_router(history_router)
 
+static_dir = Path(__file__).parent / "static"
+assets_dir = static_dir / "assets"
+if assets_dir.is_dir():
+    api.mount("/assets", StaticFiles(directory=assets_dir), name="frontend-assets")
+
 
 @api.get("/", include_in_schema=False)
-async def home() -> FileResponse:
-    """Serve the browser UI for trying the API."""
-    return FileResponse(Path(__file__).parent / "static" / "index.html")
+async def home() -> FileResponse | HTMLResponse:
+    """Serve the built browser UI, or a local-development hint before the build."""
+    index_file = static_dir / "index.html"
+    if index_file.is_file():
+        return FileResponse(index_file)
+    return HTMLResponse(
+        "<h1>Finance AI Assistant</h1>"
+        "<p>The React interface has not been built locally. "
+        "Start it from the frontend folder with <code>npm run dev</code>.</p>"
+        "<p><a href='/docs'>Open API documentation</a></p>",
+        status_code=200,
+    )
 
 
 @api.on_event("startup")

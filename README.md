@@ -2,7 +2,7 @@
 
 A portfolio project that lets you upload a financial report and ask questions about it. The app searches the report for relevant passages and uses an AI model to write an answer with sources.
 
-This repository contains the **backend API**. It does not include a website or mobile app. You can try the API in its built-in interactive page at `/docs`.
+This repository includes a web app and a backend API. Sign in, upload financial reports, ask questions, and inspect the report passages used to answer them. The API's interactive page is still available at `/docs`.
 
 ## What it can do
 
@@ -25,7 +25,7 @@ PostgreSQL stores accounts and chat history. Docker Compose starts the API, Post
 
 ## Run it on your computer
 
-You need Docker Desktop and a Groq API key. The default embedding model runs locally through FastEmbed, so you do not need an OpenAI key for embeddings.
+You need Docker Desktop and a Groq API key. The default embedding model runs locally through FastEmbed, so you do not need an OpenAI key for embeddings. Docker builds the website and API together.
 
 1. Copy the example settings file:
 
@@ -49,9 +49,19 @@ You need Docker Desktop and a Groq API key. The default embedding model runs loc
 
    FastEmbed downloads its model the first time you upload a document or search. This can make that first request take longer.
 
-4. Open [http://localhost:8000/docs](http://localhost:8000/docs) to try the API. To check whether the API process is running, open [http://localhost:8000/health](http://localhost:8000/health).
+4. Open [http://localhost:8000](http://localhost:8000) to use the website. Open [http://localhost:8000/docs](http://localhost:8000/docs) to try the API directly, or [http://localhost:8000/health](http://localhost:8000/health) to check the API.
 
 Press `Control+C` to stop the services. Run `docker compose down` to stop and remove their containers while keeping saved data. **`docker compose down -v` also deletes the local database, Chroma vectors, and uploaded PDFs.**
+
+## Use the website
+
+1. Open the site at `http://localhost:8000`.
+2. Register an account and sign in.
+3. Upload a text-based PDF report and add its company and year.
+4. Ask a question. The answer can show matching report pages and passages when available.
+5. Use **Recent questions** to reopen a previous saved question and answer.
+
+The site talks to the same FastAPI backend and uses its existing authentication and data. The backend stores individual question-and-answer records, not multi-turn conversation threads.
 
 ## Try the API
 
@@ -68,15 +78,17 @@ Protected endpoints require you to sign in. Each account can search only its own
 
 | Endpoint | What it does |
 | --- | --- |
-| `GET /health` | Checks that the API process is running. |
-| `POST /auth/register` | Creates an account. |
-| `POST /auth/token` | Signs in and returns an access token. |
-| `GET /auth/me` | Shows the signed-in account. |
-| `POST /documents/upload` | Uploads and indexes a PDF. |
-| `POST /retrieval/search` | Finds relevant passages in your documents. |
-| `POST /chat` | Answers a question using your documents. |
-| `/history` | Lists or deletes your saved chat history. |
+| `GET /health` | Checks the API. Returns a status. |
+| `POST /auth/register` | Creates an account from email and password. Returns `id`, `email`, and `role`. |
+| `POST /auth/token` | Signs in using form fields `username` (email) and `password`. Returns `access_token`, `token_type`, and `expires_in`. |
+| `GET /auth/me` | Returns the signed-in user's `id`, `email`, and `role`. |
+| `POST /documents/upload` | Uploads a PDF plus `company`, `document_type`, and optional `reporting_year`. Returns document details and `chunk_count`. |
+| `POST /retrieval/search` | Accepts `question`, optional filters and `top_k`. Returns matching passage records including `content`, filename, page, and ranking scores. |
+| `POST /chat` | Accepts the same question format. Returns `answer` and source references (`filename`, page, and chunk IDs). |
+| `GET /history` | Returns saved question-and-answer items with timestamps and sources. |
 | `/admin/users` | Lets an administrator view accounts and change roles. |
+
+Requests to protected endpoints use `Authorization: Bearer <access_token>`. Chat responses do not include passage excerpts; the UI looks them up through `/retrieval/search` when possible. The backend does not currently provide conversation IDs, ticket escalation, or feedback endpoints, so those are not represented as working features in this UI.
 
 ## Models and settings
 
@@ -95,6 +107,18 @@ Settings such as chunk size, upload size, and model provider are in `.env.exampl
 - If you change the embedding model, use a new Chroma collection and upload the PDFs again. Vectors from different models cannot be mixed.
 - Automated test coverage is limited.
 
+## Frontend development
+
+The React, TypeScript, and Tailwind source is in `frontend/`. `frontend/.env.example` shows the optional API origin setting. You need Node.js 22 or newer to run the frontend development server outside Docker.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The Vite server runs at `http://localhost:5173` and forwards API requests to FastAPI at `http://localhost:8000`. Start the backend separately with `docker compose up` from the repository root. To run frontend checks and create production assets, use `npm test` and `npm run build` from `frontend/`; Docker runs these checks when building the production image.
+
 ## Tech used
 
-Python, FastAPI, LangChain, FastEmbed, Groq, Chroma, PostgreSQL, SQLAlchemy, LangGraph, and Docker Compose.
+React, TypeScript, Tailwind CSS, Vite, Python, FastAPI, LangChain, FastEmbed, Groq, Chroma, PostgreSQL, SQLAlchemy, LangGraph, and Docker Compose.
