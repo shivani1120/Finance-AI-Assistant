@@ -1,6 +1,8 @@
 import logging
+from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 
 from app.api.routes.auth import admin_router, router as auth_router
 from app.api.routes.health import router as health_router
@@ -25,6 +27,12 @@ api.include_router(documents_router)
 api.include_router(retrieval_router)
 api.include_router(chat_router)
 api.include_router(history_router)
+
+
+@api.get("/", include_in_schema=False)
+async def home() -> FileResponse:
+    """Serve the browser UI for trying the API."""
+    return FileResponse(Path(__file__).parent / "static" / "index.html")
 
 
 @api.on_event("startup")

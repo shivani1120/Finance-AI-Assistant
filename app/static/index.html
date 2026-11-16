@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4ef">
+  <title>Finance AI Assistant</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #202923;
+      --muted: #667169;
+      --paper: #f5f4ef;
+      --card: #fffefa;
+      --line: #dfe3dc;
+      --green: #1e694f;
+      --green-dark: #154c3a;
+      --green-soft: #e8f1eb;
+      --red: #a13a32;
+      --shadow: 0 18px 50px rgba(35, 49, 40, .07);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); }
+    a { color: var(--green); }
+    button, input, select { font: inherit; }
+    .shell { width: min(1100px, calc(100% - 36px)); margin: 0 auto; }
+    header { border-bottom: 1px solid var(--line); background: rgba(255,254,250,.82); }
+    .topbar { min-height: 74px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 720; letter-spacing: -.03em; }
+    .brand-mark { width: 36px; height: 36px; display: grid; place-items: center; color: #fff; background: var(--green); border-radius: 11px; font-size: 14px; letter-spacing: -.04em; }
+    .top-links { display: flex; align-items: center; gap: 18px; font-size: 13px; color: var(--muted); }
+    .top-links a { text-decoration: none; font-weight: 650; }
+    .hero { padding: 46px 0 26px; display: flex; align-items: end; justify-content: space-between; gap: 28px; }
+    .eyebrow { color: var(--green); font-size: 11px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { margin: 9px 0 10px; font-size: clamp(30px, 4vw, 44px); line-height: 1.08; letter-spacing: -.055em; font-weight: 690; }
+    .hero p { max-width: 620px; margin: 0; color: var(--muted); font-size: 15px; line-height: 1.65; }
+    .hero-note { min-width: 200px; padding: 13px 15px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,254,250,.7); color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .hero-note strong { display: block; color: var(--ink); font-size: 13px; margin-bottom: 2px; }
+    main { padding-bottom: 56px; }
+    .auth-card { max-width: 520px; margin: 4px auto 30px; padding: 24px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); }
+    .auth-card h2, .panel h2 { margin: 0; font-size: 18px; letter-spacing: -.025em; }
+    .subcopy { margin: 7px 0 18px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .tabs { display: inline-flex; gap: 3px; padding: 4px; border-radius: 10px; background: #eff1ec; margin-bottom: 18px; }
+    .tab { border: 0; background: transparent; color: var(--muted); border-radius: 7px; padding: 8px 13px; font-size: 13px; cursor: pointer; }
+    .tab.active { background: #fffefa; color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.08); font-weight: 650; }
+    .field { display: grid; gap: 6px; margin: 13px 0; }
+    .field label { font-size: 12px; font-weight: 650; color: #3b4840; }
+    input, select { width: 100%; border: 1px solid #cfd6cf; border-radius: 9px; padding: 10px 11px; background: white; color: var(--ink); outline: none; }
+    input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(30,105,79,.12); }
+    input[type="file"] { padding: 8px; font-size: 12px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 0; border-radius: 9px; padding: 10px 15px; background: var(--green); color: white; font-size: 13px; font-weight: 680; cursor: pointer; transition: background .15s ease, transform .15s ease; }
+    .btn:hover { background: var(--green-dark); transform: translateY(-1px); }
+    .btn:disabled { opacity: .55; cursor: wait; transform: none; }
+    .btn.secondary { background: #eef2ed; color: var(--ink); }
+    .btn.secondary:hover { background: #e2e9e2; }
+    .btn.text { background: transparent; color: var(--muted); padding: 8px 10px; }
+    .btn.text:hover { color: var(--red); background: #f8eeec; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .message { min-height: 18px; margin-top: 12px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .message.error { color: var(--red); }
+    .message.success { color: var(--green); }
+    [hidden] { display: none !important; }
+    .workspace { display: grid; grid-template-columns: minmax(280px, .82fr) minmax(0, 1.4fr); align-items: start; gap: 18px; }
+    .left-column, .right-column { display: grid; gap: 18px; }
+    .panel { background: var(--card); border: 1px solid var(--line); border-radius: 15px; box-shadow: var(--shadow); padding: 21px; }
+    .panel-head { display: flex; justify-content: space-between; align-items: start; gap: 15px; margin-bottom: 8px; }
+    .panel p.hint { margin: 7px 0 15px; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .mode-switch { display: flex; gap: 7px; margin: 2px 0 10px; }
+    .mode-switch .btn { padding: 7px 11px; }
+    .mode-switch .selected { background: var(--green-dark); }
+    .result { margin-top: 15px; padding: 15px; border: 1px solid var(--line); background: #fbfcf8; border-radius: 10px; font-size: 13px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .result:empty { display: none; }
+    .result-title { display: block; margin: 0 0 8px; color: var(--green-dark); font-size: 11px; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
+    .sources { display: grid; gap: 8px; margin-top: 13px; }
+    .source { padding: 11px 12px; border-left: 3px solid #9db6a5; border-radius: 0 8px 8px 0; background: #f3f6f1; font-size: 12px; line-height: 1.55; }
+    .source-head { margin-bottom: 5px; color: #42534a; font-size: 11px; font-weight: 700; }
+    .history-list { display: grid; gap: 10px; }
+    .history-item { border: 1px solid var(--line); border-radius: 9px; padding: 11px 12px; background: #fff; }
+    .history-item strong { display: block; margin-bottom: 5px; font-size: 12px; line-height: 1.45; }
+    .history-item span { color: var(--muted); font-size: 11px; }
+    .empty { color: var(--muted); font-size: 12px; }
+    footer { padding: 0 0 28px; text-align: center; color: #7a837d; font-size: 11px; }
+    @media (max-width: 760px) {
+      .hero { align-items: start; flex-direction: column; padding-top: 34px; }
+      .hero-note { min-width: 0; }
+      .workspace { grid-template-columns: 1fr; }
+      .auth-card { margin-top: 0; }
+    }
+    @media (max-width: 480px) {
+      .shell { width: min(100% - 24px, 1100px); }
+      .topbar { min-height: 62px; }
+      .top-links { gap: 10px; font-size: 12px; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+      .panel, .auth-card { padding: 17px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="shell topbar">
+      <div class="brand"><span class="brand-mark">FA</span><span>Finance AI Assistant</span></div>
+      <nav class="top-links" aria-label="Helpful links">
+        <a href="/docs" target="_blank" rel="noreferrer">API docs ↗</a>
+        <span id="session-label">Not signed in</span>
+        <button class="btn text" id="logout-button" type="button" hidden>Sign out</button>
+      </nav>
+    </div>
+  </header>
+
+  <div class="shell">
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Financial reports, made searchable</div>
+        <h1>Ask questions about your reports.</h1>
+        <p>Upload a PDF, find the passages that matter, and ask the assistant questions grounded in your documents.</p>
+      </div>
+      <aside class="hero-note"><strong>Private workspace</strong>Your uploads and search results are tied to your account.</aside>
+    </section>
+
+    <main>
+      <section class="auth-card" id="auth-card">
+        <h2 id="auth-title">Welcome back</h2>
+        <p class="subcopy" id="auth-subcopy">Sign in to upload a report or explore a sample workflow.</p>
+        <div class="tabs" role="tablist" aria-label="Account access">
+          <button class="tab active" id="login-tab" type="button" role="tab" aria-selected="true">Sign in</button>
+          <button class="tab" id="register-tab" type="button" role="tab" aria-selected="false">Create account</button>
+        </div>
+        <form id="auth-form">
+          <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="username" required maxlength="320" placeholder="you@example.com"></div>
+          <div class="field"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required minlength="12" maxlength="128" placeholder="At least 12 characters"></div>
+          <button class="btn" id="auth-submit" type="submit">Sign in</button>
+        </form>
+        <div class="message" id="auth-message" role="status" aria-live="polite"></div>
+      </section>
+
+      <section class="workspace" id="workspace" hidden>
+        <div class="left-column">
+          <section class="panel">
+            <div class="panel-head"><h2>1. Upload a report</h2></div>
+            <p class="hint">Choose a PDF and add a few details so you can find it later.</p>
+            <form id="upload-form">
+              <div class="field"><label for="pdf-file">PDF file</label><input id="pdf-file" name="file" type="file" accept="application/pdf,.pdf" required></div>
+              <div class="field"><label for="company">Company</label><input id="company" name="company" required maxlength="200" placeholder="e.g. Example Corp"></div>
+              <div class="form-row">
+                <div class="field"><label for="reporting-year">Reporting year (optional)</label><input id="reporting-year" name="reporting_year" type="number" min="1900" max="2100" placeholder="2025"></div>
+                <div class="field"><label for="document-type">Report type</label><select id="document-type" name="document_type" required>
+                  <option value="annual_report">Annual report</option>
+                  <option value="quarterly_report">Quarterly report</option>
+                  <option value="earnings_report">Earnings report</option>
+                  <option value="financial_statement">Financial statement</option>
+                  <option value="investor_presentation">Investor presentation</option>
+                  <option value="other">Other</option>
+                </select></div>
+              </div>
+              <button class="btn" id="upload-submit" type="submit">Upload and process</button>
+            </form>
+            <div class="message" id="upload-message" role="status" aria-live="polite"></div>
+            <div class="result" id="upload-result"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><h2>Recent conversations</h2><button class="btn secondary" id="refresh-history" type="button">Refresh</button></div>
+            <p class="hint">Your recent questions and answers are saved to your account.</p>
+            <div class="history-list" id="history-list"><div class="empty">Sign in to see your history.</div></div>
+          </section>
+        </div>
+
+        <div class="right-column">
+          <section class="panel">
+            <div class="panel-head"><h2>2. Ask about your reports</h2></div>
+            <p class="hint">Search returns matching text passages. Ask AI returns an answer with report sources.</p>
+            <div class="mode-switch" role="group" aria-label="Question type">
+              <button class="btn selected" id="chat-mode" type="button" aria-pressed="true">Ask AI</button>
+              <button class="btn secondary" id="search-mode" type="button" aria-pressed="false">Find passages</button>
+            </div>
+            <form id="question-form">
+              <div class="field"><label for="question">Your question</label><input id="question" name="question" required maxlength="2000" placeholder="What changed in revenue this year?"></div>
+              <button class="btn" id="question-submit" type="submit">Ask question</button>
+            </form>
+            <div class="message" id="question-message" role="status" aria-live="polite"></div>
+            <div class="result" id="answer-result"></div>
+            <div class="sources" id="sources-result"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+    <footer>AI responses can be incomplete. Review the cited report passages before relying on an answer.</footer>
+  </div>
+
+  <script>
+    (() => {
+      const TOKEN_KEY = "finance_ai_access_token";
+      const $ = (id) => document.getElementById(id);
+      let token = sessionStorage.getItem(TOKEN_KEY);
+      let authMode = "login";
+      let questionMode = "chat";
+
+      function setMessage(id, message, kind = "") {
+        const element = $(id);
+        element.textContent = message;
+        element.className = `message ${kind}`.trim();
+      }
+
+      function setBusy(button, busy, label) {
+        button.disabled = busy;
+        if (busy) {
+          button.dataset.originalLabel = button.textContent;
+          button.textContent = label;
+        } else if (button.dataset.originalLabel) {
+          button.textContent = button.dataset.originalLabel;
+          delete button.dataset.originalLabel;
+        }
+      }
+
+      async function apiRequest(path, options = {}) {
+        const headers = new Headers(options.headers || {});
+        if (token) headers.set("Authorization", `Bearer ${token}`);
+        if (options.body && !headers.has("Content-Type")) {
+          if (options.body instanceof URLSearchParams) {
+            headers.set("Content-Type", "application/x-www-form-urlencoded");
+          } else if (!(options.body instanceof FormData)) {
+            headers.set("Content-Type", "application/json");
+          }
+        }
+        const response = await fetch(path, { ...options, headers });
+        const text = await response.text();
+        let data = null;
+        try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+        if (!response.ok) {
+          const detail = data && typeof data === "object" ? data.detail : null;
+          throw new Error(detail || `Request failed (${response.status})`);
+        }
+        return data;
+      }
+
+      function renderAuth() {
+        const signedIn = Boolean(token);
+        $("auth-card").hidden = signedIn;
+        $("workspace").hidden = !signedIn;
+        $("logout-button").hidden = !signedIn;
+        $("session-label").textContent = signedIn ? "Signed in" : "Not signed in";
+      }
+
+      function setAuthMode(mode) {
+        authMode = mode;
+        const registering = mode === "register";
+        $("auth-title").textContent = registering ? "Create your account" : "Welcome back";
+        $("auth-subcopy").textContent = registering
+          ? "Create an account to upload and search your own reports."
+          : "Sign in to upload a report or explore a sample workflow.";
+        $("auth-submit").textContent = registering ? "Create account" : "Sign in";
+        $("password").setAttribute("autocomplete", registering ? "new-password" : "current-password");
+        $("password").setAttribute("minlength", registering ? "12" : "1");
+        $("login-tab").classList.toggle("active", !registering);
+        $("register-tab").classList.toggle("active", registering);
+        $("login-tab").setAttribute("aria-selected", String(!registering));
+        $("register-tab").setAttribute("aria-selected", String(registering));
+        setMessage("auth-message", "");
+      }
+
+      function addSource(container, title, body) {
+        const card = document.createElement("article");
+        card.className = "source";
+        const heading = document.createElement("div");
+        heading.className = "source-head";
+        heading.textContent = title;
+        const content = document.createElement("div");
+        content.textContent = body;
+        card.append(heading, content);
+        container.append(card);
+      }
+
+      async function loadHistory() {
+        const list = $("history-list");
+        list.replaceChildren();
+        try {
+          const data = await apiRequest("/history?limit=10");
+          if (!data.items.length) {
+            list.innerHTML = '<div class="empty">No conversations yet. Ask a question to get started.</div>';
+            return;
+          }
+          for (const entry of data.items) {
+            const card = document.createElement("article");
+            card.className = "history-item";
+            const question = document.createElement("strong");
+            question.textContent = entry.question;
+            const answer = document.createElement("div");
+            answer.className = "empty";
+            answer.textContent = entry.answer;
+            const date = document.createElement("span");
+            date.textContent = new Date(entry.created_at).toLocaleString();
+            card.append(question, answer, date);
+            list.append(card);
+          }
+        } catch (error) {
+          list.textContent = error.message;
+          list.className = "history-list empty";
+        }
+      }
+
+      $("login-tab").addEventListener("click", () => setAuthMode("login"));
+      $("register-tab").addEventListener("click", () => setAuthMode("register"));
+      $("auth-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const button = $("auth-submit");
+        setBusy(button, true, authMode === "register" ? "Creating account…" : "Signing in…");
+        setMessage("auth-message", "");
+        const email = $("email").value.trim();
+        const password = $("password").value;
+        try {
+          if (authMode === "register") {
+            await apiRequest("/auth/register", {
+              method: "POST",
+              body: JSON.stringify({ email, password }),
+            });
+            setAuthMode("login");
+            $("email").value = email;
+            setMessage("auth-message", "Account created. Sign in with your email and password.", "success");
+          } else {
+            const form = new URLSearchParams({ username: email, password });
+            const data = await apiRequest("/auth/token", { method: "POST", body: form });
+            token = data.access_token;
+            sessionStorage.setItem(TOKEN_KEY, token);
+            renderAuth();
+            setMessage("upload-message", "Signed in. Upload a PDF report to begin.");
+            await loadHistory();
+          }
+        } catch (error) {
+          setMessage("auth-message", error.message, "error");
+        } finally {
+          setBusy(button, false);
+        }
+      });
+
+      $("logout-button").addEventListener("click", () => {
+        token = null;
+        sessionStorage.removeItem(TOKEN_KEY);
+        $("history-list").replaceChildren();
+        $("answer-result").replaceChildren();
+        $("sources-result").replaceChildren();
+        renderAuth();
+        setAuthMode("login");
+      });
+
+      $("upload-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const button = $("upload-submit");
+        setBusy(button, true, "Uploading and processing…");
+        setMessage("upload-message", "Large reports can take a little while to process.");
+        $("upload-result").replaceChildren();
+        const form = new FormData();
+        form.set("file", $("pdf-file").files[0]);
+        form.set("company", $("company").value.trim());
+        form.set("document_type", $("document-type").value);
+        if ($("reporting-year").value) form.set("reporting_year", $("reporting-year").value);
+        try {
+          const data = await apiRequest("/documents/upload", { method: "POST", body: form });
+          $("upload-result").textContent = `${data.filename} is ready. Processed ${data.chunk_count} text sections for ${data.company}.`;
+          setMessage("upload-message", "Upload complete. Ask a question about this report.", "success");
+          $("question").focus();
+        } catch (error) {
+          setMessage("upload-message", error.message, "error");
+        } finally {
+          setBusy(button, false);
+        }
+      });
+
+      function setQuestionMode(mode) {
+        questionMode = mode;
+        const chat = mode === "chat";
+        $("chat-mode").classList.toggle("selected", chat);
+        $("search-mode").classList.toggle("selected", !chat);
+        $("chat-mode").setAttribute("aria-pressed", String(chat));
+        $("search-mode").setAttribute("aria-pressed", String(!chat));
+        $("question-submit").textContent = chat ? "Ask question" : "Find passages";
+        setMessage("question-message", "");
+      }
+      $("chat-mode").addEventListener("click", () => setQuestionMode("chat"));
+      $("search-mode").addEventListener("click", () => setQuestionMode("search"));
+
+      $("question-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const button = $("question-submit");
+        setBusy(button, true, questionMode === "chat" ? "Thinking…" : "Searching…");
+        setMessage("question-message", questionMode === "chat" ? "Looking through your reports…" : "Finding matching passages…");
+        $("answer-result").replaceChildren();
+        $("sources-result").replaceChildren();
+        try {
+          const question = $("question").value.trim();
+          const data = await apiRequest(questionMode === "chat" ? "/chat" : "/retrieval/search", {
+            method: "POST",
+            body: JSON.stringify({ question, filters: {}, top_k: 5 }),
+          });
+          if (questionMode === "chat") {
+            $("answer-result").textContent = data.answer;
+            setMessage("question-message", "Answer ready. Check the cited report sources below.", "success");
+            for (const source of data.sources) {
+              addSource($("sources-result"), `${source.filename}${source.page_number ? ` · page ${source.page_number}` : ""}`, `Source ${source.source_id}`);
+            }
+            await loadHistory();
+          } else {
+            $("answer-result").textContent = data.result_count
+              ? `Found ${data.result_count} matching passage${data.result_count === 1 ? "" : "s"}.`
+              : "No matching passages found. Try another question or upload a report first.";
+            setMessage("question-message", "Search complete.", "success");
+            for (const result of data.results) {
+              addSource($("sources-result"), `${result.filename}${result.page_number ? ` · page ${result.page_number}` : ""} · ${result.company}`, result.content);
+            }
+          }
+        } catch (error) {
+          setMessage("question-message", error.message, "error");
+        } finally {
+          setBusy(button, false);
+        }
+      });
+
+      $("refresh-history").addEventListener("click", loadHistory);
+      renderAuth();
+      if (token) loadHistory();
+    })();
+  </script>
+</body>
+</html>
