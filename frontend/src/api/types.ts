@@ -88,12 +88,15 @@ export interface ChatMessageData {
   isSearch?: boolean;
 }
 
-export interface UploadInput {
-  file: File;
+interface UploadMetadata {
   company: string;
   reportingYear?: number;
   documentType: DocumentType;
 }
+
+export type UploadInput =
+  | (UploadMetadata & { source: "file"; file: File })
+  | (UploadMetadata & { source: "url"; url: string });
 
 export class ApiError extends Error {
   constructor(

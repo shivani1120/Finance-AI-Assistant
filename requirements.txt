@@ -14,5 +14,6 @@ sqlalchemy==2.0.54
 psycopg[binary]==3.2.9
 pwdlib[argon2]==0.3.1
 PyJWT==2.15.1
+email-validator==2.4.0
 langchain-anthropic==1.7.5
 langgraph==1.2.14

@@ -9,21 +9,25 @@ class EmbeddingConfigurationError(RuntimeError):
     """Raised when the configured embedding provider is not ready to use."""
 
 
-@lru_cache(maxsize=4)
-def _load_fastembed_model(model_name: str):
+@lru_cache(maxsize=8)
+def _load_fastembed_model(model_name: str, threads: int):
     from fastembed import TextEmbedding
 
-    return TextEmbedding(model_name=model_name)
+    return TextEmbedding(
+        model_name=model_name,
+        threads=threads,
+        enable_cpu_mem_arena=False,
+    )
 
 
 class FastEmbedEmbeddings(Embeddings):
     """Generate embeddings locally with FastEmbed (no hosted API key needed)."""
 
-    def __init__(self, model_name: str) -> None:
-        self._model = _load_fastembed_model(model_name)
+    def __init__(self, model_name: str, threads: int = 2) -> None:
+        self._model = _load_fastembed_model(model_name, threads)
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
-        return [vector.tolist() for vector in self._model.passage_embed(texts)]
+        return [vector.tolist() for vector in self._model.passage_embed(texts, batch_size=16)]
 
     def embed_query(self, text: str) -> list[float]:
         return next(self._model.query_embed(text)).tolist()
@@ -74,7 +78,7 @@ def create_embedding_model(settings: Settings) -> Embeddings:
         raise EmbeddingConfigurationError("Set EMBEDDING_MODEL in the environment")
 
     if provider == "fastembed":
-        return FastEmbedEmbeddings(settings.embedding_model)
+        return FastEmbedEmbeddings(settings.embedding_model, settings.embedding_threads)
 
     if provider == "jina":
         if not settings.jina_api_key:

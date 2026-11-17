@@ -10,7 +10,7 @@ import type {
 } from "./types";
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
-const REQUEST_TIMEOUT_MS = 120_000;
+const REQUEST_TIMEOUT_MS = 300_000;
 
 async function request<T>(
   path: string,
@@ -53,9 +53,21 @@ async function request<T>(
         body && typeof body === "object" && "detail" in body
           ? (body as { detail?: unknown }).detail
           : null;
+      const validationDetail = Array.isArray(detail)
+        ? detail
+            .map((item) =>
+              item && typeof item === "object" && "msg" in item && typeof item.msg === "string"
+                ? item.msg.replace(/^Value error,\s*/i, "")
+                : "",
+            )
+            .filter(Boolean)
+            .join("; ")
+        : null;
       const message =
         typeof detail === "string"
           ? detail
+          : response.status === 422 && validationDetail
+            ? validationDetail
           : response.status === 429
             ? "Too many requests. Please wait a moment and try again."
             : `The request failed (${response.status}). Please try again.`;
@@ -100,6 +112,21 @@ export const api = {
   },
 
   upload(input: UploadInput, token: string): Promise<UploadedDocument> {
+    if (input.source === "url") {
+      return request<UploadedDocument>(
+        "/documents/import-url",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            url: input.url,
+            company: input.company,
+            reporting_year: input.reportingYear,
+            document_type: input.documentType,
+          }),
+        },
+        token,
+      );
+    }
     const form = new FormData();
     form.set("file", input.file);
     form.set("company", input.company);

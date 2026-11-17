@@ -57,7 +57,7 @@ Press `Control+C` to stop the services. Run `docker compose down` to stop and re
 
 1. Open the site at `http://localhost:8000`.
 2. Register an account and sign in.
-3. Upload a text-based PDF report and add its company and year.
+3. Upload a text-based PDF report and add its company and year, or paste a public PDF link from `www.ril.com`. For Reliance links, the app fills in the company and detects the year from the filename.
 4. Ask a question. The answer can show matching report pages and passages when available.
 5. Use **Recent questions** to reopen a previous saved question and answer.
 
@@ -70,6 +70,7 @@ In `/docs`:
 1. Use `POST /auth/register` to create an account.
 2. Click **Authorize** and sign in with that email and password.
 3. Use `POST /documents/upload` to upload a PDF and add its company and year.
+   Or use `POST /documents/import-url` with a public Reliance PDF URL. Company, year, and report type are optional; defaults are supplied when they can be inferred.
 4. Use `POST /chat` to ask a question about your report, or `POST /retrieval/search` to see matching passages without an AI-generated answer.
 
 Protected endpoints require you to sign in. Each account can search only its own uploaded documents.
@@ -83,6 +84,7 @@ Protected endpoints require you to sign in. Each account can search only its own
 | `POST /auth/token` | Signs in using form fields `username` (email) and `password`. Returns `access_token`, `token_type`, and `expires_in`. |
 | `GET /auth/me` | Returns the signed-in user's `id`, `email`, and `role`. |
 | `POST /documents/upload` | Uploads a PDF plus `company`, `document_type`, and optional `reporting_year`. Returns document details and `chunk_count`. |
+| `POST /documents/import-url` | Downloads and indexes a public HTTPS PDF from `www.ril.com`. Only `url` is required; company, year, and report type can be provided to override the inferred defaults. |
 | `POST /retrieval/search` | Accepts `question`, optional filters and `top_k`. Returns matching passage records including `content`, filename, page, and ranking scores. |
 | `POST /chat` | Accepts the same question format. Returns `answer` and source references (`filename`, page, and chunk IDs). |
 | `GET /history` | Returns saved question-and-answer items with timestamps and sources. |
@@ -103,6 +105,7 @@ Settings such as chunk size, upload size, and model provider are in `.env.exampl
 - Only PDFs with selectable text are supported. Scanned PDFs need OCR, which is not included.
 - Complex financial tables may not extract cleanly.
 - The app does not yet include email verification, password reset, or request rate limiting.
+- Registration checks the email format and domain's mail DNS records, but it does not verify mailbox ownership with a confirmation email.
 - Use public or sample reports for a portfolio demo. Do not expose the API publicly with real financial documents until access limits, HTTPS, data retention, and backups are configured.
 - If you change the embedding model, use a new Chroma collection and upload the PDFs again. Vectors from different models cannot be mixed.
 - Automated test coverage is limited.

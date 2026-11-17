@@ -24,6 +24,7 @@ class Settings(BaseSettings):
 
     embedding_provider: str = "fastembed"
     embedding_model: str = "BAAI/bge-small-en-v1.5"
+    embedding_threads: int = Field(default=2, ge=1, le=8)
     openai_api_key: str | None = None
     jina_api_key: str | None = None
     groq_api_key: str | None = None

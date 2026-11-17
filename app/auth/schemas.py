@@ -1,5 +1,6 @@
 from enum import StrEnum
 
+from email_validator import EmailNotValidError, validate_email
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -15,10 +16,16 @@ class UserCreate(BaseModel):
     @field_validator("email")
     @classmethod
     def normalize_email(cls, value: str) -> str:
-        email = value.strip().lower()
-        if email.count("@") != 1 or "." not in email.rsplit("@", 1)[-1]:
-            raise ValueError("Enter a valid email address")
-        return email
+        try:
+            email = validate_email(
+                value.strip(),
+                check_deliverability=True,
+                globally_deliverable=True,
+                timeout=3,
+            )
+        except EmailNotValidError as exc:
+            raise ValueError("Enter a valid email address") from exc
+        return email.normalized.lower()
 
 
 class UserRead(BaseModel):
