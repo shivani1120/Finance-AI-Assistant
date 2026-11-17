@@ -37,33 +37,42 @@ def financial_claim_error(
     source_by_id = {source.source_id.upper(): source for source in sources}
     chunk_by_id = {chunk.chunk_id: chunk for chunk in chunks}
 
-    for sentence in SENTENCE_PATTERN.split(answer):
-        sentence = sentence.strip()
-        if not sentence:
-            continue
-        numbers = _normalized_numbers(sentence)
-        if not numbers and not FINANCIAL_CLAIM_PATTERN.search(sentence):
-            continue
-
-        cited_ids = {
+    # A citation at the end of a paragraph can support the sentences before it.
+    # Requiring every sentence to repeat [S#] caused otherwise grounded summaries
+    # to be discarded, even when their paragraph ended with valid citations.
+    paragraphs = re.split(r"\n\s*\n", answer)
+    for paragraph in paragraphs:
+        paragraph_citations = {
             citation.upper()
-            for citation in re.findall(r"\[(S\d+)\]", sentence, flags=re.IGNORECASE)
+            for citation in re.findall(r"\[(S\d+)\]", paragraph, flags=re.IGNORECASE)
         }
-        if not cited_ids:
-            return "uncited_financial_claim"
-
-        cited_text_parts: list[str] = []
-        for source_id in cited_ids:
-            source = source_by_id.get(source_id)
-            if source is None:
+        for sentence in SENTENCE_PATTERN.split(paragraph):
+            sentence = sentence.strip()
+            if not sentence:
                 continue
-            chunk = chunk_by_id.get(source.chunk_id)
-            if chunk is not None:
-                cited_text_parts.append(
-                    f"{chunk.content} reporting year {chunk.reporting_year or ''} "
-                    f"page {chunk.page_number or ''}"
-                )
-        source_numbers = _normalized_numbers(" ".join(cited_text_parts))
-        if numbers - source_numbers:
-            return "unsupported_numeric_claim"
+            numbers = _normalized_numbers(sentence)
+            if not numbers and not FINANCIAL_CLAIM_PATTERN.search(sentence):
+                continue
+
+            cited_ids = {
+                citation.upper()
+                for citation in re.findall(r"\[(S\d+)\]", sentence, flags=re.IGNORECASE)
+            } or paragraph_citations
+            if not cited_ids:
+                return "uncited_financial_claim"
+
+            cited_text_parts: list[str] = []
+            for source_id in cited_ids:
+                source = source_by_id.get(source_id)
+                if source is None:
+                    continue
+                chunk = chunk_by_id.get(source.chunk_id)
+                if chunk is not None:
+                    cited_text_parts.append(
+                        f"{chunk.content} reporting year {chunk.reporting_year or ''} "
+                        f"page {chunk.page_number or ''}"
+                    )
+            source_numbers = _normalized_numbers(" ".join(cited_text_parts))
+            if numbers - source_numbers:
+                return "unsupported_numeric_claim"
     return None

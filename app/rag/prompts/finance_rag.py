@@ -20,4 +20,4 @@ Response guidance for this question:
 Retrieved document excerpts:
 {context}
 
-Answer clearly and concisely. Cite relevant factual claims with the supplied [S#] source labels."""
+Answer clearly and concisely. Keep financial figures exactly as stated in the excerpts; do not calculate or infer numbers. Cite each factual sentence, or put the relevant [S#] citations at the end of that same paragraph. Use only the supplied source labels."""

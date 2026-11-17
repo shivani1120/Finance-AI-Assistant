@@ -15,9 +15,24 @@ NO_EVIDENCE_ANSWER = (
     "I could not find relevant information in the uploaded documents to answer that question."
 )
 SAFE_FALLBACK_ANSWER = (
-    "I could not produce an answer with citations that match the retrieved sources. "
-    "Please try a more specific question or different document filters."
+    "I found related report passages, but could not safely verify the answer against them. "
+    "Try asking about one figure, topic, or reporting year at a time."
 )
+VALIDATION_MESSAGES = {
+    "invalid_citation": (
+        "I found related passages, but the answer's citations did not match them. "
+        "Try a narrower question about a specific report or year."
+    ),
+    "uncited_financial_claim": (
+        "I found related passages, but could not attach a clear citation to every financial claim. "
+        "Try asking about one figure or topic at a time."
+    ),
+    "unsupported_numeric_claim": (
+        "I found related passages, but one or more numbers could not be verified in the cited text. "
+        "Try asking for a specific figure and its report page."
+    ),
+    "invalid_output": "The answer could not be formatted safely. Please try again.",
+}
 
 
 def validate_input_node(state: RAGState) -> dict:
@@ -149,5 +164,8 @@ def safe_response_node(state: RAGState) -> dict:
             "I can summarize factual information in the uploaded documents."
         )
     else:
-        answer = SAFE_FALLBACK_ANSWER
-    return {"answer": answer, "sources": []}
+        answer = VALIDATION_MESSAGES.get(
+            state.get("validation_result", ""), SAFE_FALLBACK_ANSWER
+        )
+    preserved_sources = state.get("sources", []) if state.get("retrieved_chunks") else []
+    return {"answer": answer, "sources": preserved_sources}
