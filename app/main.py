@@ -36,7 +36,7 @@ if assets_dir.is_dir():
     api.mount("/assets", StaticFiles(directory=assets_dir), name="frontend-assets")
 
 
-@api.get("/", include_in_schema=False)
+@api.get("/", include_in_schema=False, response_model=None)
 async def home() -> FileResponse | HTMLResponse:
     """Serve the built browser UI, or a local-development hint before the build."""
     index_file = static_dir / "index.html"
