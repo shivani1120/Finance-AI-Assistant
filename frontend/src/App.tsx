@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Menu, Plus, ShieldCheck, UploadCloud } from "lucide-react";
+import { BarChart3, Menu, Plus, ShieldCheck, UploadCloud } from "lucide-react";
 import { api } from "./api/client";
 import { ApiError } from "./api/types";
 import type { ChatMessageData, ChatSource, HistoryEntry, UploadInput, User } from "./api/types";
 import { AppSidebar } from "./components/AppSidebar";
+import { AnalysisPanel } from "./components/AnalysisPanel";
 import { AuthScreen } from "./components/AuthScreen";
 import { ChatComposer, type QuestionMode } from "./components/ChatComposer";
 import { ChatMessage } from "./components/ChatMessage";
@@ -38,6 +39,7 @@ export default function App() {
   const [uploadBusy, setUploadBusy] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [uploadSummary, setUploadSummary] = useState<string | null>(null);
+  const [analysisOpen, setAnalysisOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [toast, setToast] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -229,6 +231,7 @@ export default function App() {
           </div>
           <div className="flex items-center gap-2">
             {uploadSummary && <div className="hidden max-w-[280px] items-center gap-1.5 truncate rounded-full bg-[#eaf2eb] px-3 py-1.5 text-[10px] text-[#3d704e] lg:flex"><ShieldCheck size={12} className="shrink-0" /><span className="truncate">{uploadSummary}</span></div>}
+            <button className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#dfe4dd] bg-white px-3 text-[11px] font-semibold text-[#526055] transition hover:bg-[#f5f7f3]" onClick={() => setAnalysisOpen(true)} type="button"><BarChart3 size={14} className="text-[#4d7957]" /><span>Compare reports</span></button>
             <button className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#dfe4dd] bg-white px-3 text-[11px] font-semibold text-[#526055] transition hover:bg-[#f5f7f3]" onClick={() => { setUploadError(""); setUploadOpen(true); }}><UploadCloud size={14} className="text-[#4d7957]" /><span className="hidden sm:inline">Upload report</span><span className="sm:hidden">Upload</span></button>
           </div>
         </header>
@@ -260,6 +263,7 @@ export default function App() {
       </main>
 
       {uploadOpen && <UploadDialog busy={uploadBusy} error={uploadError} onClose={() => { if (!uploadBusy) setUploadOpen(false); }} onSubmit={handleUpload} />}
+      {analysisOpen && token && <AnalysisPanel token={token} onClose={() => setAnalysisOpen(false)} />}
       {toast && <div className="fixed bottom-24 left-1/2 z-40 -translate-x-1/2 rounded-xl border border-[#d7e6d9] bg-white px-4 py-3 text-xs font-medium text-[#356347] shadow-lg" role="status">{toast}</div>}
     </div>
   );

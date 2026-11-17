@@ -10,6 +10,8 @@ This repository includes a web app and a backend API. Sign in, upload financial 
 - Upload text-based PDF reports.
 - Find relevant report passages using semantic search.
 - Answer questions using retrieved passages and show the sources.
+- Compare 2–5 of your reports for key figures, operating margin, and year-over-year revenue growth.
+- Show a source quote and report page for each extracted figure.
 - Keep each user's documents and chat history separate.
 - Apply basic checks to questions, documents, and answers.
 
@@ -20,6 +22,8 @@ This repository includes a web app and a backend API. Sign in, upload financial 
 3. FastEmbed turns each piece into a vector, which Chroma stores for search.
 4. Ask a question. Chroma finds related passages and the chat model uses them to write an answer.
 5. The API returns the answer and its sources.
+
+Use **Compare reports** in the website to select two to five of your reports. The app tries to extract revenue, operating profit, net income, operating cash flow, and total debt. It calculates operating margin and, for annual reports from the same company with matching currency and units, year-over-year revenue growth. Each extracted number is shown with a quote and page from its report. Figures that cannot be matched back to clear source text are left blank.
 
 PostgreSQL stores accounts and chat history. Docker Compose starts the API, PostgreSQL, and Chroma together.
 
@@ -87,6 +91,8 @@ Protected endpoints require you to sign in. Each account can search only its own
 | `POST /documents/import-url` | Downloads and indexes a public HTTPS PDF from `www.ril.com`. Only `url` is required; company, year, and report type can be provided to override the inferred defaults. |
 | `POST /retrieval/search` | Accepts `question`, optional filters and `top_k`. Returns matching passage records including `content`, filename, page, and ranking scores. |
 | `POST /chat` | Accepts the same question format. Returns `answer` and source references (`filename`, page, and chunk IDs). |
+| `GET /analysis/documents` | Lists reports available to the signed-in user for comparison. |
+| `POST /analysis/compare` | Extracts and compares figures from 2–5 owned reports, with source quotes and pages. |
 | `GET /history` | Returns saved question-and-answer items with timestamps and sources. |
 | `/admin/users` | Lets an administrator view accounts and change roles. |
 
@@ -104,6 +110,7 @@ Settings such as chunk size, upload size, and model provider are in `.env.exampl
 
 - Only PDFs with selectable text are supported. Scanned PDFs need OCR, which is not included.
 - Complex financial tables may not extract cleanly.
+- Financial figure extraction is an early feature. Report layouts vary, so review the shown source quote and page; blank values mean the app could not verify a clear figure.
 - The app does not yet include email verification, password reset, or request rate limiting.
 - Registration checks the email format and domain's mail DNS records, but it does not verify mailbox ownership with a confirmation email.
 - Use public or sample reports for a portfolio demo. Do not expose the API publicly with real financial documents until access limits, HTTPS, data retention, and backups are configured.

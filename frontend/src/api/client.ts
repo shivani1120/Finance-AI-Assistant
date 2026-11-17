@@ -1,7 +1,9 @@
 import { ApiError } from "./types";
 import type {
   AuthToken,
+  AnalysisDocument,
   ChatResponse,
+  CompareReportsResponse,
   HistoryPage,
   RetrievalResponse,
   UploadInput,
@@ -109,6 +111,18 @@ export const api = {
 
   history(token: string): Promise<HistoryPage> {
     return request<HistoryPage>("/history?limit=20&offset=0", {}, token);
+  },
+
+  analysisDocuments(token: string): Promise<AnalysisDocument[]> {
+    return request<AnalysisDocument[]>("/analysis/documents", {}, token);
+  },
+
+  compareReports(documentIds: string[], token: string): Promise<CompareReportsResponse> {
+    return request<CompareReportsResponse>(
+      "/analysis/compare",
+      { method: "POST", body: JSON.stringify({ document_ids: documentIds }) },
+      token,
+    );
   },
 
   upload(input: UploadInput, token: string): Promise<UploadedDocument> {

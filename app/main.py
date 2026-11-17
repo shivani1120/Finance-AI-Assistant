@@ -12,6 +12,7 @@ from app.api.routes.documents import router as documents_router
 from app.api.routes.retrieval import router as retrieval_router
 from app.api.routes.chat import router as chat_router
 from app.api.routes.history import router as history_router
+from app.api.routes.analysis import router as analysis_router
 from app.core.config import get_settings
 from app.auth.bootstrap import initialize_auth_storage
 from app.observability.logging import configure_logging
@@ -29,6 +30,7 @@ api.include_router(documents_router)
 api.include_router(retrieval_router)
 api.include_router(chat_router)
 api.include_router(history_router)
+api.include_router(analysis_router)
 
 static_dir = Path(__file__).parent / "static"
 assets_dir = static_dir / "assets"

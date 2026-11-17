@@ -30,6 +30,44 @@ export interface UploadedDocument {
   status: string;
 }
 
+export interface AnalysisDocument {
+  document_id: string;
+  filename: string;
+  company: string;
+  reporting_year: number | null;
+  document_type: DocumentType;
+  chunk_count: number;
+}
+
+export interface MetricEvidence {
+  value: number;
+  unit: string;
+  quote: string;
+  page_number: number;
+}
+
+export interface ReportMetrics {
+  document_id: string;
+  filename: string;
+  company: string;
+  reporting_year: number | null;
+  document_type: DocumentType;
+  metrics: {
+    revenue: MetricEvidence | null;
+    operating_profit: MetricEvidence | null;
+    net_income: MetricEvidence | null;
+    operating_cash_flow: MetricEvidence | null;
+    total_debt: MetricEvidence | null;
+  };
+  operating_margin_percent: number | null;
+  revenue_growth_percent: number | null;
+}
+
+export interface CompareReportsResponse {
+  reports: ReportMetrics[];
+  note: string;
+}
+
 export interface ChatSource {
   source_id: string;
   document_id: string;
